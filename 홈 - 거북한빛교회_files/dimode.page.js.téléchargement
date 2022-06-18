@@ -1,0 +1,104 @@
+﻿/// <reference path="../../../scripts/dimode.common.library.js" />
+(function () {
+    $(document).ready(function () {
+        // 초기화 클릭시
+        $(document).on('click', '#dimodePage .page-actions .reset-btn', function () {
+            if (confirm('현재 페이지를 초기화 하시겠습니까?')) {
+                dimodeLib.bandMessage('warning', '처리 중입니다.', 0);
+
+                var moduleU = $('#dimodePage .page-actions input[name=moduleU]').val();
+                var isMobile = $('#dimodePage .page-actions input[name=isMobile]').val();
+
+                $.ajax({
+                    url: '/Page/Reset/' + moduleU,
+                    type: 'POST',
+                    data: 'isMobile=' + isMobile,
+                    success: function (response) {
+                        if (response === 'success') {
+                            dimodeLib.bandMessageCookie('success', '초기화하였습니다.');
+                            location.href = '/Page/Index/' + moduleU;
+                        }
+                        else if (response === 'noAuth') {
+                            dimodeLib.bandMessage('danger', '권한이 없습니다.');
+                        }
+                        else {
+                            dimodeLib.bandMessage('danger', '오류가 있습니다.#1', 0);
+                        }
+                    },
+                    error: function () {
+                        dimodeLib.bandMessage('danger', '오류가 있습니다.#2', 0);
+                    }
+                });
+            }
+        });
+
+        // 페이지가 오시는 길인 경우(구글맵)
+        $('.dimode-unit[data-type=map]').each(function () {
+            var argMapInfo = $(this).find('.map-info').text();
+            if (!dimodeLib.isNullOrEmpty(argMapInfo)) {
+                argMapInfo = JSON.parse(argMapInfo.trim());
+                dimodeLib.googleMapInsert(argMapInfo, $(this).find('.map-content'));
+            }
+        });
+
+        // 위젯
+        $('.dimode-unit[data-type=widget]').each(function () {
+            var widget = $(this);
+            var moduleU = widget.attr('data-module_u');
+            var kind = widget.attr('data-kind');
+            var count = widget.attr('data-count');
+            var items = widget.attr('data-items');
+            var order = widget.attr('data-order');
+            var orderType = widget.attr('data-order_type');
+            var width = widget.attr('data-width');
+            var height = widget.attr('data-height');
+
+            var args = {
+                paramModuleU: moduleU !== undefined ? moduleU : '',
+                paramKind: kind !== undefined ? kind : '',
+                paramCount: count !== undefined ? count : 0,
+                paramItems: items !== undefined ? items : '',
+                paramOrder: order !== undefined ? order : '',
+                paramOrderType: orderType !== undefined ? orderType : ''
+            };
+
+            $.ajax({
+                url: '/Document/GetModuleDocuments',
+                type: 'POST',
+                data: $.param(args),
+                success: function (returnData) {
+                    widget.html('');
+                    if (!dimodeLib.isNullOrEmpty(returnData)) {
+                        var documentData = JSON.parse(returnData);
+                        if (documentData.length) {
+                            switch (kind) {
+                                case 'image':
+                                    for (var i in documentData) {
+                                        var imgData = documentData[i];
+
+                                        var tag = '<a href="/' + imgData.ModuleName + '/' + imgData.ModuleU + '/Detail/' + imgData.DocumentU + '" style="display:inline-block;margin:12px;text-align:center;">';
+
+                                        if (!dimodeLib.isNullOrEmpty(imgData.TitleImage))
+                                            tag += '<img src="' + imgData.TitleImage + '" style="width:' + width + 'px; height:' + height + '" /><br />';
+
+                                        tag += '<span style="display:inline-block;padding-top:12px;width:100%;color:#333;">' + imgData.Title + '</span></a>';
+
+                                        widget.append(tag);
+                                    }
+                                    break;
+                            }
+
+                            widget.show();
+                        }
+                        else {
+                            widget.append('<div class="text-center">글이 존재하지 않습니다.</div>');
+                        }
+                    }
+                },
+                error: function () {
+                    widget.append('<div class="text-center">오류가 있습니다.</div>');
+                }
+            });
+        });
+    });
+})(jQuery);

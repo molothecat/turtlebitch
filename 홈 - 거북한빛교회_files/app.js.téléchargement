@@ -1,0 +1,163 @@
+var app = new Vue({
+    el: '#app',
+    data: {
+        now: new Date(),
+        base: {},
+        dates: [],
+        moduleU: 673
+    },
+    methods: {
+        move: function (month) {
+            this.base.setMonth(this.base.getMonth() + month);
+            this.draw();
+        },
+        make: function (d) {
+            var year = d.year;
+            var month = d.month + 1;
+            var date = d.date;
+
+            month = month < 10 ? '0' + month : month+"";
+            date = date < 10 ? '0' + date : date+"";
+
+            return year + month + date;
+        },
+        replaceAll: function (val, str1, str2) {
+            if (val)
+                return val.split(str1).join(str2);
+
+            return val;
+        },
+       
+        go: function (u) {
+            console.log(u);
+
+            if (u) {
+                location.href = '/Board/Detail/' + this.moduleU + '/' + u;
+            }
+        },
+        draw: function () {
+            var t = this;
+            var prevDate = new Date(this.base.getFullYear(), this.base.getMonth(), 1);
+            var currentDate = new Date(this.base.getFullYear(), this.base.getMonth(), 1);
+            var nextDate = new Date(this.base.getFullYear(), this.base.getMonth(), 1);
+            var prevDateLimit;
+            var currentLimit;
+            var nextLimit;
+            this.dates = [];
+
+            prevDate.setDate(1);
+            prevDateLimit = prevDate.getDay();
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            currentDate.setDate(1);
+            currentDate.setDate(currentDate.getDate() - 1);
+            currentLimit = currentDate.getDate();
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            nextLimit = 42 - prevDateLimit - currentLimit;
+
+            for (var i = 0; i < prevDateLimit; i += 1) {
+                prevDate.setDate(prevDate.getDate() - 1);
+
+                this.dates.push({
+                    u: null,
+                    year: prevDate.getFullYear(),
+                    month: prevDate.getMonth(),
+                    date: prevDate.getDate(),
+                    prev: true,
+                    current: false,
+                    next: false,
+                    today: prevDate.getFullYear() === t.now.getFullYear() && prevDate.getMonth() === t.now.getMonth() && prevDate.getDate() === t.now.getDate(),
+                    schedule: false,
+                    day: "",
+                    holiday: false
+                });
+            }
+
+            this.dates.reverse();
+
+            for (var j = 0; j < currentLimit; j += 1) {
+                currentDate.setDate(j + 1);
+                this.dates.push({
+                    u: null,
+                    year: currentDate.getFullYear(),
+                    month: currentDate.getMonth(),
+                    date: currentDate.getDate(),
+                    prev: false,
+                    current: true,
+                    next: false,
+                    today: currentDate.getFullYear() === t.now.getFullYear() && currentDate.getMonth() === t.now.getMonth() && currentDate.getDate() === t.now.getDate(),
+                    schedule: false,
+                    day: "",
+                    holiday: false
+                });
+            }
+
+            for (var k = 0; k < nextLimit; k += 1) {
+                nextDate.setDate(k + 1);
+                this.dates.push({
+                    u: null,
+                    year: nextDate.getFullYear(),
+                    month: nextDate.getMonth(),
+                    date: nextDate.getDate(),
+                    prev: false,
+                    current: false,
+                    next: true,
+                    today: nextDate.getFullYear() === t.now.getFullYear() && nextDate.getMonth() === t.now.getMonth() && nextDate.getDate() === t.now.getDate(),
+                    schedule: false,
+                    day:"",
+                    holiday: false
+                });
+            }
+
+            var fromApiData = {
+                startDate: this.make(this.dates[0]),
+                lastDate: this.make(this.dates[this.dates.length - 1])
+            };
+
+            console.log(fromApiData.startDate);
+            console.log(fromApiData.lastDate);
+
+            $.ajax({
+                url: "/board/GetCalendarData/" + t.moduleU,
+                data: fromApiData,
+                dataType: "json",
+                beforeSend: function () {
+                },
+                complete: function () {
+                },
+                error: function (request, status, error) {
+                    //alert(request + " " + status + " " + error);
+                    console.log("error");
+                },
+                statusCode: {
+                },
+                success: function (res) {
+
+                    for (var d in t.dates) {
+                        for (a in res) {
+                            var eachDate = t.make(t.dates[d]);
+                            var startDate = res[a].StartDate;
+                            var endDate = res[a].EndDate;
+                            startDate = t.replaceAll(startDate, '-', '');
+                            endDate = t.replaceAll(endDate, '-', '');
+
+                            if (eachDate >= startDate && eachDate <= endDate) {
+                                var u = res[a].DocumentU;
+                                var title = res[a].Title;
+                                t.dates[d].u = u;
+                                t.dates[d].title = title;
+                                t.dates[d].schedule = true;
+                               
+                            }
+
+                        }
+                    }
+                }
+            });
+        }
+    },
+    created: function () {
+        this.base = new Date();
+        this.draw();
+    }
+
+});

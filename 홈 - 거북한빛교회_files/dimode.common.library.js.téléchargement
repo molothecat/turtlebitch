@@ -1,0 +1,1003 @@
+﻿var dimodeLib = {
+
+    /*
+        이 객체는 전역 객체로 모든 곳에서 접근이 가능합니다.
+    */
+
+    replaceAll: function (str, searchStr, replaceStr) {
+
+        /* 
+            이 메서드는 전체를 변경(replace)합니다.
+        */
+
+        if (str && typeof str === 'string')
+            return str.split(searchStr).join(replaceStr);
+
+        return '';
+    },
+
+    log: function (message) {
+
+        /*
+            이 메서드는 로그를 표시합니다.
+        */
+
+        try {
+            console.log(message);
+        }
+        catch (e) {
+            alert(message);
+        }
+    },
+
+    isNullOrEmpty: function (paramValue) {
+
+        /*
+            이 메서드는 값이 빈 값 혹은 null 혹은 undefined 인지 체크합니다.
+        */
+
+        var returnValue = null;
+
+        paramValue = $.trim(paramValue);
+
+        if (paramValue == '' || paramValue == null || paramValue == 'null' || paramValue == undefined) {
+            returnValue = true;
+        }
+        else {
+            returnValue = false;
+        }
+
+        return returnValue;
+    },
+
+    // 이미지 확장자 배열
+    imgArray: ['jpg', 'png', 'gif', 'jpeg'],
+
+    base64_encode: function (str) {
+
+        /*
+            이 메서드는 base64 로 암호화(encode)합니다.
+        */
+
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+            return String.fromCharCode('0x' + p1);
+        }));
+    },
+
+    base64_decode: function (str) {
+
+        /*
+            이 메서드는 base64 로 복호화(decode)합니다.
+        */
+
+        return decodeURIComponent(Array.prototype.map.call(atob(str), function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+    },
+
+    htmlEncode: function (value) {
+
+        /*
+            이 메서드는 텍스트를 html로 암호화(encode)합니다.
+        */
+
+        return $('<div/>').text(value).html();
+    },
+    htmlDecode: function (value) {
+
+        /*
+            이 메서드는 텍스트를 html로 복호화(decode)합니다.
+        */
+
+        return $('<div/>').html(value).text();
+    },
+
+    removeParameters: function (url) {
+
+        /*
+            이 메서드는 주소(url)의 매개변수를 제거합니다.
+        */
+
+        url = url.split('?');
+        url = url[0];
+        return url;
+    },
+
+    interval: null,
+    timer: {},
+    timeOut: {},
+
+    processPop: function (type) {
+
+        /* 
+            이 메서드는 레이어로 Process 내용을 띄웁니다.
+        */
+
+        if (type === 'show') {
+            clearTimeout(dimodeLib.timeOut['processPop']);
+
+            var popHtml = '';
+            if ($('body').find('#processPop').length < 1)
+                $('body').prepend('<div id="processPop"><div id="processPopWrapper"></div></div>')
+
+            popHtml = '<div class="message">';
+
+            for (var i = 0; i < 5; i++) {
+                popHtml += '<span></span>';
+            }
+
+            popHtml += '</div>';
+            popHtml += '<div class="text">로딩 중입니다.</div>';
+
+            var i = 0;
+            $('#processPop').stop().css('opacity', 1);
+            $('#processPop .message span').removeClass('transition');
+            clearInterval(dimodeLib.interval);
+            $('#processPop > #processPopWrapper').html(popHtml);
+            $('#processPop').show();
+
+            dimodeLib.interval = setInterval(function () {
+                if ($('#processPop .message span').length + 1 == i)
+                    i = 0;
+
+                $('#processPop .message span:eq(' + i + ')').toggleClass('transition');
+                i += 1;
+            }, 70);
+
+            //setTimeout(function () {
+            //    if ($('#processPop').is(':visible'))
+            //        $('#processPop').fadeOut(210);
+            //}, 7600);
+        }
+        else if (type == 'hide') {
+            if ($('#processPop').length) {
+                clearTimeout(dimodeLib.timeOut['processPop']);
+                dimodeLib.timeOut['processPop'] = setTimeout(function () {
+                    $('#processPop').stop().fadeOut(420, function () {
+                        clearInterval(dimodeLib.interval);
+                    });
+                }, 210);
+            }
+        }
+    },
+
+    bandMessage: function (type, message, time) {
+
+        /* 
+            이 메서드는 레이어로 Band 메시지를 띄웁니다.
+        */
+
+        clearTimeout(dimodeLib.timeOut['bandMessage']);
+
+        var messageHtml = '';
+        if ($('body').find('#bandMessage').length < 1)
+            $('body').prepend('<div id="bandMessage"><div id="bandMessageWrapper" class="container"></div></div>')
+
+        messageHtml = '<div class="message text-center alert alert-' + type + '">';
+        messageHtml += '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>';
+        messageHtml += message;
+        messageHtml += '</div>';
+
+        $('#bandMessage > #bandMessageWrapper').html(messageHtml);
+        $('#bandMessage .message').hide().stop().fadeIn(300);
+
+        if (time === undefined)
+            time = 3000;
+
+        if (time !== 0) {
+            dimodeLib.timeOut['bandMessage'] = setTimeout(function () {
+                $('#bandMessage .message').stop().fadeOut(720);
+            }, time);
+        }
+    },
+
+    bandMessageCookie: function (type, text, time) {
+
+        /* 
+            이 메서드는 레이어로 Band 메시지를 띄웁니다.
+            쿠키로 저장하여 실행 후 바로 다음 페이지에서 실행합니다.
+        */
+
+        var args = {
+            type: type,
+            text: text,
+            time: time
+        };
+
+        $.cookie('bandMessage', JSON.stringify(args), { expires: 1, path: '/' });
+    },
+
+    addLoadEvent: function (func) {
+        var oldonload = window.onload;
+        if (typeof window.onload != 'function') {
+            window.onload = func;
+        }
+        else {
+            window.onload = function () {
+                oldonload();
+                func();
+            }
+        }
+    },
+
+    focusToEnd: function (inputSelector) {
+
+        /* 
+            이 메서드는 input 맨 끝에 포커스 맞춥니다.
+        */
+
+        if (inputSelector != undefined) {
+            var searchInput = $(inputSelector);
+            if (searchInput.val() != undefined) {
+                var strLength = searchInput.val().length * 2;
+
+                searchInput.focus();
+                searchInput[0].setSelectionRange(strLength, strLength);
+            }
+        }
+    },
+
+    isEmailValidate: function (paramEmail) {
+
+        /*
+            이 메서드는 이메일 형식이 맞는지 체크합니다.
+        */
+
+        var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+        return regex.test(paramEmail);
+    },
+
+    removeElements: function (paramText, paramSelector) {
+
+        /*
+            이 메서드는 특정 요소(element)를 제거합니다.
+        */
+
+        var wrappedElement = $("<div>" + paramText + "</div>");
+
+        if (paramSelector == "all") {
+            return wrappedElement.text();
+        }
+        else {
+            wrappedElement.find(paramSelector).remove();
+            return wrappedElement.html();
+        }
+    },
+
+    googleMapInsert: function (paramMapData, paramTarget) {
+        /*
+            이 메서드는 구글맵을 입력합니다.
+        */
+
+        if (!dimodeLib.isNullOrEmpty(paramMapData.mapAddr)) {
+            // 위도와 경도 값 모두 있는지 체크
+            if (paramMapData.mapLat != 0 && paramMapData.mapLng != 0) {
+
+                // 위도와 경도 설정
+                var myLatlng = new google.maps.LatLng(paramMapData.mapLat, paramMapData.mapLng);
+
+                // 지도 옵션
+                var mapOptions = {
+                    zoom: paramMapData.mapZoom, // 확대할 수치
+                    center: myLatlng, // 위도 경도 입력
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    disableDoubleClickZoom: true,
+                    scrollwheel: false
+                }
+
+                // 지도 크기 설정
+                    paramTarget.css('width', paramMapData.mapWidth).css('height', paramMapData.mapHeight);
+
+                // 지도 적용
+                var mark = function (map) {
+                    // 마커(표시점)
+                    var marker = new google.maps.Marker({
+                        position: myLatlng,
+                        map: map
+                    });
+
+                    // 마커(표시점) 등장
+                    var infowindow = new google.maps.InfoWindow();
+
+                    // 말풍선 사용할 경우
+                    /*
+                    var markerTitle = ""; // 말풍선 타이틀
+                    var markerMaxWidth = ; // 말풍선 최대 크키
+                    var contentString = "";// 말풍선 내용
+                
+                    google.maps.event.addListener(marker, 'click', function () {
+                        infowindow.open(map, marker);
+                    });
+                
+                    var infowindow = new google.maps.InfoWindow(
+                        {
+                            content: contentString,
+                            maxWidth: markerMaxWidth
+                        }
+                    );*/
+                };
+
+                    mark(new google.maps.Map(paramTarget[0], mapOptions));
+
+                //if (paramTarget.substring(0, 1) === '.') {
+                //    var target = paramTarget.replace('.', '');
+                //    var classes = document.getElementsByClassName(target);
+
+                //    if (classes.length) {
+                //        mark(new google.maps.Map(classes[0], mapOptions));
+                //    }
+                //    else {
+                //        return false;
+                //    }
+                //}
+                //else {
+                //    var target = paramTarget.replace('#', '');
+                //    var id = document.getElementById(target);
+                //    if (!dimodeLib.isNullOrEmpty(id))
+                //        mark(new google.maps.Map(id, mapOptions));
+                //    else
+                //        return false;
+                //}
+            }
+        }
+    },
+
+    getColors: function (paramColorType, paramIndex) {
+
+        /*
+            이 메서드는 색상의 조합을 가져옵니다.
+        */
+
+        var colorArray = new Array();
+
+        switch (paramColorType) {
+            case 'rob':
+                colorArray = ['#296FAB', '#D80027', '#FF8A00'];
+                break;
+            case 'orange':
+                colorArray = ['#EB5606', '#FE8F02', '#FFA800'];
+                break;
+            case 'blue':
+                colorArray = ['#1a87cf', '#0088cc', '#276b8c', '#1368a6', '#1570a6', '#8183c3'];
+                break;
+            case 'rainbow':
+                colorArray = ['#d90f42', '#fb9b00', '#1dc4ac', '#0096cc', '#003c9e', '#00137a', '#6e1a1f'];
+                break;
+        }
+
+        var i = paramIndex % (colorArray.length);
+
+        return colorArray[i];
+    },
+
+    addArgument: function (paramSearch, paramArgKey, paramArgValue) {
+
+        /*
+            이 메서드는 URL에 매개변수를 추가합니다.
+            이미 값이 있을 경우 수정합니다.
+        */
+
+        var search = paramSearch;
+        var searchArray = [];
+
+        if (!dimodeLib.isNullOrEmpty(search)) {
+            search = search.replace('?', '');
+            searchArray = search.split('&');
+
+            for (var i in searchArray) {
+                var key = searchArray[i].split('=')[0];
+                if (key == paramArgKey)
+                    searchArray.splice(i, 1);
+            }
+        }
+
+        searchArray.push(paramArgKey + '=' + paramArgValue);
+        return '?' + searchArray.join('&');
+    },
+
+    removeArgument: function (paramSearch, paramArgKey) {
+
+        /*
+            이 메서드는 URL에 매개변수를 삭제합니다.
+        */
+
+        var search = paramSearch;
+        var searchArray = [];
+
+        if (!dimodeLib.isNullOrEmpty(search)) {
+            search = search.replace('?', '');
+            searchArray = search.split('&');
+
+            for (var i in searchArray) {
+                var key = searchArray[i].split('=')[0];
+
+                if (key == paramArgKey)
+                    searchArray.splice(i, 1);
+            }
+        }
+
+        if (searchArray.length)
+            return '?' + searchArray.join('&');
+        else
+            return '';
+    },
+
+    isValidated: function (paramSelector) {
+
+        /*
+            이 메서드는 유효성 검사를 합니다.
+        */
+
+        var required = $(paramSelector).find('.required');
+
+        for (var i = 0; i < required.length; i++) {
+            var eachElem = required.eq(i);
+            var value = '';
+            var tagName = eachElem[0].tagName;
+
+            switch (tagName) {
+                case 'SELECT':
+                    value = eachElem.find('option:selected').val();
+                    break;
+
+                case 'INPUT':
+                    switch (eachElem.attr('type')) {
+                        case 'radio':
+                            var name = eachElem.attr('name');
+                            value = $(paramSelector).find('input.required[type=radio][name=' + name + ']:checked').val();
+                            break;
+                        case 'checkbox':
+                            var name = eachElem.attr('name');
+                            value = $(paramSelector).find('input.required[type=checkbox][name=' + name + ']:checked').val();
+                            break;
+                        default:
+                            value = eachElem.val();
+                            break;
+                    }
+                    break;
+
+                default:
+                    value = eachElem.val();
+                    break;
+            }
+
+            if (dimodeLib.isNullOrEmpty(value)) {
+                var alertMessage = eachElem.attr('data-alert');
+
+                if (!dimodeLib.isNullOrEmpty(alertMessage))
+                    dimodeLib.bandMessage('warning', alertMessage);
+                else
+                    dimodeLib.bandMessage('warning', '필수항목을 입력해주세요.');
+
+                eachElem.focus();
+                return false;
+            }
+            else if (tagName == 'INPUT') {
+                var compareLength = value.length;
+                var maxLength = eachElem.attr('data-max-length');
+                var minLength = eachElem.attr('data-min-length');
+                var type = eachElem.attr('type');
+                var check = eachElem.attr('data-check');
+                var checkFor = eachElem.attr('data-check-for');
+
+                switch (type) {
+                    case 'email':
+                        if (!dimodeLib.isEmailValidate(value)) {
+                            dimodeLib.bandMessage('warning', '올바른 이메일 형식이 아닙니다.');
+                            eachElem.focus();
+                            return false;
+                        }
+                        break;
+                }
+
+                if (!dimodeLib.isNullOrEmpty(check)) {
+                    var checkResult = '';
+
+                    switch (check) {
+                        case 'duplicated':
+                            switch (checkFor) {
+                                case 'id':
+                                    $.ajax({
+                                        url: '/Account/IdCheck/',
+                                        type: 'POST',
+                                        async: false,
+                                        data: 'paramId=' + value,
+                                        success: function (response) {
+                                            checkResult = response;
+                                        },
+                                        error: function () {
+                                            checkResult = 'error';
+                                        }
+                                    })
+                                    break;
+
+                                case 'email':
+                                    $.ajax({
+                                        url: '/Account/EmailCheck/',
+                                        type: 'POST',
+                                        async: false,
+                                        data: 'paramEmail=' + value,
+                                        success: function (response) {
+                                            checkResult = response;
+                                        },
+                                        error: function () {
+                                            checkResult = 'error';
+                                        }
+                                    })
+                                    break;
+                            }
+                            break;
+                    }
+
+                    if (checkResult == 'error') {
+                        dimodeLib.bandMessage('danger', '오류가 있습니다.', 0);
+                        eachElem.focus();
+                        return false;
+                    }
+                    else if (checkResult !== "validated") {
+                        switch (checkFor) {
+                            case 'email':
+                                dimodeLib.bandMessage('warning', '중복 이메일입니다. 다른 이메일 주소를 입력해주세요.');
+                                break;
+
+                            case 'id':
+                                dimodeLib.bandMessage('warning', '중복 아이디입니다. 다른 아이디를 입력해주세요.');
+                                break;
+                        }
+                        eachElem.focus();
+                        return false;
+                    }
+                }
+
+                if (compareLength > maxLength) {
+                    dimodeLib.bandMessage('warning', '최대 ' + maxLength + '자까지 입력할 수 있습니다(현재 : ' + compareLength + '자).');
+                    eachElem.focus();
+                    return false;
+                }
+                else if (compareLength < minLength) {
+                    dimodeLib.bandMessage('warning', '최소 ' + minLength + '자는 입력해야 합니다(현재 : ' + compareLength + '자).');
+                    eachElem.focus();
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    },
+
+    dieTimeout: null,
+
+    die: function (paramTarget) {
+        paramTarget.addClass('hide die');
+
+        dimodeLib.dieTimeout = setTimeout(function () {
+            if (paramTarget.hasClass('hide'))
+                paramTarget.remove();
+        }, 5720);
+
+        dimodeLib.bandMessage('success', '삭제하였습니다. <a class="revival" onclick="dimodeLib.revival()">되살리기</a>');
+    },
+
+    revival: function () {
+        clearTimeout(dimodeLib.dieTimeout);
+        $('.die').removeClass('hide');
+        $('.die').removeClass('die');
+        dimodeLib.bandMessage('success', '복구하였습니다.');
+    },
+
+    deviceCheck: {
+        Android: navigator.userAgent.match(/Android/i),
+        BlackBerry: navigator.userAgent.match(/BlackBerry/i),
+        iOS: navigator.userAgent.match(/iPhone|iPad|iPod/i),
+        Opera: navigator.userAgent.match(/Opera Mini/i),
+        Windows: navigator.userAgent.match(/IEMobile/i),
+    },
+
+    rgb2hex: function (rgb) {
+        if (rgb.search("rgb") == -1) {
+            return rgb;
+        }
+        else {
+            rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
+            function hex(x) {
+                return ("0" + parseInt(x).toString(16)).slice(-2);
+            }
+
+            return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        }
+    },
+
+    getRandomNumber: function (startNum, endNum) {
+        endNum += 1;
+        return Math.floor(Math.random() * (startNum - endNum)) + endNum;
+    },
+
+    modal: {
+        checkHasMore: function (paramApplySelector, paramCount1, paramCount2) {
+            if (paramCount1 === 0 || paramCount2 === undefined)
+                $(paramApplySelector + ' .more-area').hide();
+            else if (Number(paramCount1) === Number(paramCount2))
+                $(paramApplySelector + ' .more-area').hide();
+            else
+                $(paramApplySelector + ' .more-area').show();
+        },
+
+        drawLine: function (paramModalSelector, time) {
+            setTimeout(function () {
+                var leftArea = $(paramModalSelector).find('.left-area');
+                var rightArea = $(paramModalSelector).find('.right-area');
+
+                if (leftArea.height() > rightArea.height())
+                    leftArea.css('border-right', '1px solid #e5e5e5')
+                else
+                    rightArea.css('border-left', '1px solid #e5e5e5')
+            }, time);
+        },
+
+        applyToElem: function (paramModalSelector, paramObj) {
+            $(paramModalSelector + ' .style-input').each(function () {
+                var attr = $(this).attr('data-attr');
+                var measure = $(this).attr('data-measure');
+                var value = $(this).val();
+
+                if (!dimodeLib.isNullOrEmpty(value) && value.indexOf('%') === -1) {
+                    switch (measure) {
+                        case 'px':
+                            value = value.replace('px', '') + 'px';
+                            break;
+                        case 'percent':
+                            value = value.replace('%', '') + '%';
+                            break;
+                    }
+                }
+
+                paramObj.css(attr, value);
+            });
+        },
+
+        applyToModal: function (paramApplyTarget, paramElem) {
+            var style = paramElem.attr('style');
+            var styleObj = {};
+
+            if (style !== undefined) {
+                var styles = style.split(';');
+                for (var i in styles) {
+                    if (!dimodeLib.isNullOrEmpty(styles[i])) {
+                        var styleArr = styles[i].split(':');
+                        if (styleArr.length === 2) {
+                            var key = styleArr[0].trim();
+                            var value = styleArr[1].replace('px', '').trim();
+                            styleObj[key] = value;
+                        }
+                    }
+                }
+            }
+
+            if (styleObj['width'] == undefined)
+                styleObj['width'] = '';
+
+            if (styleObj['height'] == undefined)
+                styleObj['height'] = '';
+
+            $(paramApplyTarget + ' .style-input').each(function () {
+                var attr = $(this).attr('data-attr');
+
+                if (!dimodeLib.isNullOrEmpty(attr)) {
+                    var value = ''
+
+                    if (styleObj[attr] != undefined) {
+                        value = styleObj[attr];
+                    }
+                    else {
+                        value = paramElem.css(attr);
+                        if (!dimodeLib.isNullOrEmpty(value)) {
+                            if (value.indexOf('rgb') != '-1') {
+                                if (value == 'rgba(0, 0, 0, 0)') {
+                                    value = '';
+                                }
+                                else {
+                                    var rgbaArr = (dimodeLib.replaceAll(value, ', ', ',').split(' '));
+                                    if (rgbaArr.length > 1)
+                                        value = rgbaArr[0];
+
+                                    value = dimodeLib.rgb2hex(value);
+                                }
+                            }
+                            else if (attr == 'border-style') {
+                                var valueArr = value.split(' ');
+
+                                if (valueArr.length > 1) {
+                                    for (var i in valueArr) {
+                                        if (valueArr[i] != 'none') {
+                                            value = valueArr[i];
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            value = value.replace('px', '');
+                        }
+                    }
+
+                    $(this).val(value);
+                }
+            });
+        }
+    },
+
+    numberFormat: function (paramNumber) {
+        return paramNumber.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+
+    file: {
+        getImagePath: function (paramFileU) {
+            var returnValue = '';
+
+            if (!dimodeLib.isNullOrEmpty(paramFileU)) {
+                $.ajax({
+                    url: '/File/GetFilePath/',
+                    async: false,
+                    type: 'POST',
+                    data: 'paramFileU=' + paramFileU,
+                    success: function (response) {
+                        returnValue = response;
+                    },
+                    error: function () {
+                        dimodeLib.bandMessage('danger', '오류가 있습니다.#2', 0);
+                    }
+                });
+            }
+
+            return returnValue;
+        },
+
+        getExtension: function (paramValue) {
+            var nameArr = paramValue.split('.');
+            return nameArr[nameArr.length - 1];
+        }
+    },
+
+    getUrlParam: function (paramKey) {
+        var returnValue = '';
+        var url = location.href;
+
+        if (url.split('?').length > 1) {
+            var paramTxt = url.split('?')[1];
+            paramTxt = paramTxt.replace('?', '');
+            var params = paramTxt.split('&');
+
+            for (var i in params) {
+                if (params[i].split('=')[0] == paramKey) {
+                    returnValue = params[i].split('=')[1];
+                    break;
+                }
+            }
+        }
+        return returnValue;
+    },
+
+    getDate: function (date) {
+        var returnValue = '';
+        var now = date ? date : new Date();
+        var dd = now.getDate();
+        var mm = now.getMonth() + 1;
+        var yyyy = now.getFullYear();
+        console.log(yyyy);
+
+
+        if (dd < 10)
+            dd = '0' + dd;
+
+        if (mm < 10)
+            mm = '0' + mm;
+
+        returnValue = yyyy + '' + mm + '' + dd;
+        return returnValue;
+    },
+
+    openPop: function (url, target, opt) {
+        if (window.cordova && cordova.InAppBrowser)
+            cordova.InAppBrowser.open(url, target ? target : '_blank', 'location=yes,EnableViewPortScale=yes');
+        else
+            window.open(url, '', opt ? opt : '');
+    },
+
+    renew: function (val) {
+        return val ? JSON.parse(JSON.stringify(val)) : '';
+    },
+
+    resizeIframe: function (obj) {
+        var func = function () {
+            var height = obj.contentWindow.document.body.scrollHeight;
+
+            if (height > $(obj).parent().height())
+                height = $(obj).parent().height();
+
+            obj.style.height = height + 'px';
+        }
+        func();
+
+        setTimeout(function () {
+            func();
+        }, 420);
+    },
+    isJson: function (val) {
+        try {
+            JSON.parse(val);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    },
+    getParsedJson: function (val) {
+        try {
+            return JSON.parse(val);
+        }
+        catch (e) {
+            return val;
+        }
+    },
+    getDateFormat: function (value) {
+        if (value) {
+            var date, year, month, day;
+
+            if (typeof value === 'string')
+                value = value.substring(0, 10);
+
+            if (typeof value.getMonth === 'function' || typeof value === 'string' && dimodeLib.validatedDate(value.length)) {
+                date = new Date(value);
+                year = date.getFullYear();
+                month = '' + (date.getMonth() + 1);
+                day = '' + date.getDate();
+
+                if (month.length < 2)
+                    month = '0' + month;
+
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [year, month, day].join('-');
+            }
+        }
+
+        return value;
+    },
+    validatedDate: function (value) {
+        value = dimodeLib.replaceAll(value, '-', '');
+
+        if (value && value.length >= 8 && Number(value)) {
+            var year = Number(value.substr(0, 4));
+            var month = Number(value.substr(4, 2));
+            var day = Number(value.substr(6, 2));
+            var dayCond = day > 0;
+            var short = [1, 3, 5, 7, 8, 10, 12];
+            var shorter = [4, 6, 9, 11];
+            var shortest = [2];
+            var isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+            var februaryDay = isLeapYear ? 29 : 28;
+
+            if (short.indexOf(month) >= 0)
+                dayCond = dayCond && day <= 31;
+            else if (shorter.indexOf(month) >= 0)
+                dayCond = dayCond && day <= 30;
+            else if (shortest.indexOf(month) >= 0)
+                dayCond = dayCond && day <= februaryDay;
+
+            return year >= 1900 && year < 3000 && (month >= 1 && month <= 12) && dayCond;
+        }
+
+        return false;
+    },
+    processLine: function (status) {
+        switch (status) {
+            case 'start':
+                if (!$('#processLine').length)
+                    $(document.body).append('<div id="processLine" class="process-line dimode-theme background"></div>');
+
+                $('#processLine').attr('data-status', 'init');
+                setTimeout(function () {
+                    $('#processLine').attr('data-status', 'start');
+
+                    clearTimeout(dimodeLib.timer['processLine1']);
+                    clearTimeout(dimodeLib.timer['processLine2']);
+                    clearTimeout(dimodeLib.timer['processLine3']);
+
+                    dimodeLib.timer['processLine1'] = setTimeout(function () {
+                        if ($('#processLine').attr('data-status') !== 'init')
+                            $('#processLine').attr('data-status', 'ing');
+                    }, 2500);
+
+                    dimodeLib.timer['processLine2'] = setTimeout(function () {
+                        if ($('#processLine').attr('data-status') !== 'init')
+                            $('#processLine').attr('data-status', 'init');
+                    }, 57500);
+                });
+                break;
+
+            case 'end':
+                setTimeout(function () {
+                    if ($('#processLine').attr('data-status') !== 'init') {
+                        $('#processLine').attr('data-status', 'end');
+
+                        dimodeLib.timer['processLine3'] = setTimeout(function () {
+                            $('#processLine').attr('data-status', 'init');
+                        }, 500);
+                    }
+                });
+                break;
+        }
+    },
+    isHolyDay: function (d) {
+        var year = d.getFullYear();
+        var month = d.getMonth() + 1;
+        var date = d.getDate();
+        var lunarDate;
+        var solars = [
+            { month: 1, date: 1 },
+            { month: 3, date: 1 },
+            { month: 5, date: 1 },
+            { month: 5, date: 5 },
+            { month: 6, date: 6 },
+            { month: 8, date: 15 },
+            { month: 10, date: 3 },
+            { month: 10, date: 9 },
+            { month: 12, date: 25 }
+        ];
+        var lunars = [
+            { month: 12, date: 30 },
+            { month: 1, date: 1 },
+            { month: 1, date: 2 },
+            { month: 4, date: 8 },
+            { month: 8, date: 14 },
+            { month: 8, date: 15 },
+            { month: 8, date: 16 }
+        ];
+
+        for (var i in solars) {
+            if (solars[i].month === month && solars[i].date === date)
+                return true;
+        }
+
+        lunarDate = lunar.getResult(year, month, date);
+
+        for (var j in lunars) {
+            if (lunars[j].month === lunarDate.getMonth() + 1 && lunars[j].date === lunarDate.getDate())
+                return true;
+        }
+
+        return false;
+    },
+    getByteCount: function (str) {
+        var returnValue = 0;
+
+        for (var i = 0; i < str.length; i += 1) {
+            var c = str.charAt(i);
+
+            if (c.charCodeAt() <= 255)
+                returnValue += 1;
+            else
+                returnValue += 2;
+        }
+
+        return returnValue;
+    },
+    getSunday: function (d) {
+        var date;
+
+        if (typeof d.getMonth === 'function' && typeof d.getMonth === 'function')
+            date = d;
+        else
+            date = new Date(d);
+
+        for (var i = 0; i < 7; i += 1) {
+            if (date.getDay() === 0)
+                return dimodeLib.getDateFormat(date);
+
+            date.setDate(date.getDate() - 1);
+        }
+
+        return null;
+    },
+};

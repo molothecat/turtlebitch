@@ -1,0 +1,104 @@
+﻿.slider {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
+
+    .slider .slider-wrapper {
+        height: 100%;
+    }
+
+        .slider .slider-wrapper .slide {
+            height: 100%;
+            text-align: center;
+        }
+
+            .slider .slider-wrapper .slide.bg {
+                background-size: auto 100%;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+
+            .slider .slider-wrapper .slide p {
+                margin: 0;
+            }
+
+            .slider .slider-wrapper .slide img {
+                max-width: 100%;
+            }
+
+    .slider .slider-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+        .slider .slider-dots .each-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            cursor: pointer;
+            margin: 0 2px;
+            border: 1px solid #eee;
+            border-radius: 50%;
+            opacity: 0.9;
+        }
+
+            .slider .slider-dots .each-dot.active {
+                background: #286090;
+                border-color: #1c74bf;
+            }
+
+    .slider .move-btn {
+        background: rgba(0, 0, 0, 0.68);
+        position: absolute;
+        top: 50%;
+        margin-top: -52px;
+        cursor: pointer;
+        padding: 42px 12px;
+    }
+
+        .slider .move-btn.prev-btn {
+            left: 0;
+        }
+
+        .slider .move-btn.next-btn {
+            right: 0;
+        }
+
+    .slider.rightBottom .move-btn {
+        right: 0;
+        bottom: 0;
+        margin-top: 0;
+        padding: 0;
+        top: initial;
+    }
+
+        .slider.rightBottom .move-btn:hover {
+            opacity: 0.8;
+        }
+
+        .slider.rightBottom .move-btn.prev-btn {
+            background: rgba(255, 255, 255, 0.41);
+            left: initial;
+            right: 52px;
+        }
+
+    .slider .manage-link {
+        position: absolute;
+        color: #333;
+        top: 3px;
+        right: 6px;
+        font-size: 16px;
+    }
+
+@media(max-width:767px) {
+    .slider .move-btn {
+        padding: 42px 2px;
+        background: rgba(0, 0, 0, 0.5);
+    }
+}

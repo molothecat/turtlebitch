@@ -1,0 +1,183 @@
+﻿.direct-popup {
+    z-index: 9999;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+
+    .direct-popup .visible-popups > .each {
+        background-color: #fff;
+        background-size: 100% 100%;
+        border: 1px solid #ddd;
+        min-width: 210px;
+        min-height: 100px;
+        max-width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        display: none;
+    }
+
+        .direct-popup .visible-popups > .each > .content {
+            margin-bottom: 38px;
+        }
+
+            .direct-popup .visible-popups > .each > .content p {
+                margin: 0;
+            }
+
+            .direct-popup .visible-popups > .each > .content > img {
+                cursor: pointer;
+            }
+
+            .direct-popup .visible-popups > .each > .content .link-btn {
+                display: block;
+                text-align: center;
+            }
+
+        .direct-popup .visible-popups > .each > .bottom {
+            padding: 10px;
+            cursor: default;
+            border-top: 1px solid #eee;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #191616;
+            color: #fff;
+        }
+
+            .direct-popup .visible-popups > .each > .bottom span {
+                cursor: pointer;
+            }
+
+                .direct-popup .visible-popups > .each > .bottom span.close-btn {
+                    float: right;
+                }
+
+        .direct-popup .visible-popups > .each[data-type=image] img {
+            min-width: 210px;
+        }
+
+    .direct-popup .manager {
+        position: fixed;
+        left: 100%;
+        top: 0;
+        /*width: 100%;*/
+        width: 90%;
+        height: 100%;
+        background-color: #eee;
+        border-left: 1px solid #ddd;
+        background-size: 700px;
+        background-repeat: no-repeat;
+        background-position: 40% 70%;
+        transition: left 0.5s;
+        z-index: 99;
+    }
+
+        .direct-popup .manager .dragger {
+            position: absolute;
+            right: 100%;
+            bottom: 42px;
+            padding: 10px;
+            background: #eee;
+            border: 1px solid #ddd;
+            border-right: 0;
+            cursor: pointer;
+            font-style: italic;
+            width: 80px;
+            text-align: center;
+            width: 99px;
+        }
+
+            .direct-popup .manager .dragger img {
+                height: 12px;
+                margin-right: 5px;
+                vertical-align: middle;
+            }
+
+        .direct-popup .manager .article {
+            height: 100%;
+            padding: 42px;
+            width: 100%;
+            position: relative;
+            /*min-width: 1200px;*/
+        }
+
+            .direct-popup .manager .article .close-btn {
+                position: absolute;
+                right: 10px;
+                top: 1px;
+                font-size: 42px;
+                line-height: 0.8;
+                color: #aaa;
+                cursor: pointer;
+            }
+
+                .direct-popup .manager .article .close-btn:hover {
+                    color: #3a3a3a;
+                }
+
+            .direct-popup .manager .article > .wrapper {
+                background: #fff;
+                height: 100%;
+                position: relative;
+                border: 1px solid #ddd;
+                padding: 91px 0 0 0;
+                width: 100%;
+            }
+
+                .direct-popup .manager .article > .wrapper > .title {
+                    font-size: 21px;
+                    font-weight: bold;
+                    padding-bottom: 20px;
+                    border-bottom: 1px dashed #ddd;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    padding: 30px 50px;
+                }
+
+                    .direct-popup .manager .article > .wrapper > .title img {
+                        height: 21px;
+                        margin-right: 7px;
+                    }
+
+                .direct-popup .manager .article > .wrapper .core {
+                    height: 100%;
+                }
+
+                    .direct-popup .manager .article > .wrapper .core iframe {
+                        border: 0;
+                        width: 100%;
+                        height: 100%;
+                    }
+
+        .direct-popup .manager.active {
+            left: 10%;
+        }
+
+    .direct-popup.managing {
+        position: relative;
+    }
+
+        .direct-popup.managing .visible-popups {
+            display: none;
+        }
+
+@media(max-width:767px) {
+    .direct-popup .visible-popups > .each {
+        margin-left: 0 !important;
+    }
+
+    .direct-popup .manager .dragger {
+        display: none;
+    }
+	.video-wrap { width:100%;}
+	.video-wrap iframe { width:100%!important; height:auto!important;}
+	
+}

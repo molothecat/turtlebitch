@@ -1,0 +1,74 @@
+#app {
+    padding-top: 10px;
+}
+
+.calendar {
+    font-size: 0;
+}
+
+    .calendar .bottom {
+        font-size: 15px;
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+        color: white;
+        padding-top: 10px;
+        font-weight: 700;
+    }
+
+        .calendar .bottom .left,
+        .calendar .bottom .right {
+            position: absolute;
+            top: 10px;
+            cursor: pointer;
+        }
+
+        .calendar .bottom .left {
+            left: 0;
+        }
+
+        .calendar .bottom .right {
+            right: 0;
+        }
+
+    .calendar .each {
+        width: 14.2%;
+        font-size: 15px;
+        text-align: center;
+        display: inline-block;
+        border: 1px solid #37485C;
+        padding: 5px;
+        color: #fff;
+        background: #506070;
+        cursor: default;
+    }
+
+        .calendar .each[day='0'] {
+            color: red;
+        }
+
+        .calendar .each.prev,
+        .calendar .each.next {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .calendar .each.today {
+            background: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+
+        .calendar .each.schedule {
+            color: #183aec;
+            cursor: pointer;
+            background: #ccfffb;
+        }
+
+        .calendar .each.holiday {
+            color: red;
+        }
+
+@media(min-width:992px) and (max-width:1199px) {
+    .calendar .each {
+        padding:2px!important;
+    }
+}

@@ -1,0 +1,322 @@
+﻿(function () {
+    $(document).ready(function () {
+        var $popup = $('#directPopup');
+        var ckEditor;
+        var setType = function (type) {
+            $popup.find('.form').attr('data-type', type);
+
+            switch (type) {
+                case 'text':
+                    $popup.find('.form .text').removeClass('hide').siblings('.image').addClass('hide');
+                    break;
+
+                case 'image':
+                    $popup.find('.form .image').removeClass('hide').siblings('.text').addClass('hide');
+                    break;
+            }
+        };
+
+        var change = function (add) {
+            if (add)
+                $popup.find('.form').removeClass('hide').siblings('.list').addClass('hide');
+            else
+                $popup.find('.list').removeClass('hide').siblings('.form').addClass('hide');
+        };
+
+        var reset = function () {
+            $popup.find('.manager .form [name]').each(function () {
+                var tagName = $(this).prop('tagName');
+
+                switch (tagName) {
+                    case 'SELECT':
+                        $(this).val($(this).find('option').val());
+                        break;
+
+                    case 'INPUT':
+                        switch ($(this).attr('type')) {
+                            case 'radio':
+                                $(this).prop('checked', !$(this).val());
+                                break;
+
+                            case 'checkbox':
+                                $(this).prop('checked', true);
+                                break;
+
+                            default:
+                                $(this).val(null);
+                                break;
+                        }
+                        break;
+
+                    default:
+                        $(this).val(null);
+                        break;
+                }
+            });
+        };
+
+        var setEditor = function () {
+            if (!ckEditor)
+                ckEditor = CKEDITOR.replace('content', { height: 210 });
+        };
+
+        $popup.on('click', '.manager .list tbody tr[data-u] a.edit-btn', function () {
+            var u = $(this).closest('tr').data('u');
+            $.get('/popup/info', { popupU: u }).then(function (res) {
+                if (dimodeLib.isJson(res)) {
+                    var popup = JSON.parse(res);
+                    change(true);
+                    setType(popup.type);
+
+                    if (popup.type === 'text')
+                        setEditor();
+
+                    if (popup.popupU)
+                        $popup.find('.manager .actions .remove-btn').removeClass('hide');
+                    else
+                        $popup.find('.manager .actions .remove-btn').addClass('hide');
+
+                    $popup.find('.form select[name=type]').attr('readonly', true).find('option').attr('disabled', true);
+
+                    $popup.find('.form [name]').each(function () {
+                        var name = $(this).attr('name');
+                        var tagName = $(this).prop('tagName');
+
+                        for (var i in popup) {
+                            if (name === i) {
+                                if (name === 'content') {
+                                    if (popup.type === 'text')
+                                        ckEditor.setData(dimodeLib.htmlDecode(popup[i]));
+                                    else
+                                        $(this).val(popup[i]);
+                                }
+                                else if (tagName === 'INPUT' && ($(this).attr('type') === 'radio' || $(this).attr('type') === 'checkbox')) {
+                                    $(this).prop('checked', popup[i] !== undefined && popup[i] !== null && $(this).val() === popup[i].toString());
+                                }
+                                else {
+                                    $(this).val(popup[i]);
+                                }
+                                break;
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        $popup.on('click', '.manager .close-btn', function () {
+            window.location.reload();
+        });
+
+        $popup.on('click', '.manager .dragger', function () {
+            $(this).closest('.manager').toggleClass('active');
+            $popup.toggleClass('managing');
+
+            if ($(this).closest('.manager').hasClass('active')) {
+                $popup.find('.manager .core').html('<iframe src="/Popup/Index"></iframe>')
+                $(document.body).css('overflow', 'hidden');
+            }
+            else {
+                window.location.reload();
+            }
+        });
+
+        $popup.on('change', '.manager .form select.type', function () {
+            var type = $(this).val();
+            setType(type);
+        });
+
+        $popup.on('click', '.manager .form .more-item a', function () {
+            $popup.find('.optional').toggleClass('visible');
+            $(this).toggleClass('hide').siblings().toggleClass('hide');
+        });
+
+        $popup.on('click', '.manager .actions .add-btn', function () {
+            setType('text');
+            reset();
+            change(true);
+            setEditor();
+            $popup.find('.form select[name=type]').removeAttr('readonly').find('option').removeAttr('disabled');
+        });
+
+        $popup.on('click', '.manager .list tbody tr[data-u] a.remove-btn', function () {
+            if (confirm('삭제하시겠습니까?')) {
+                var u = $(this).closest('tr').data('u');
+                $.post('/popup/remove/', { popupU: u }).then(function (res) {
+                    if (res === 'success') {
+                        dimodeLib.bandMessage('success', '삭제하였습니다.', 5000);
+                    }
+                    else {
+                        dimodeLib.bandMessage('danger', '오류가 있습니다.');
+                    }
+                });
+            }
+        });
+
+        $popup.on('click', '.manager .actions .cancel-btn', function () {
+            change();
+        });
+
+        $popup.on('click', '.visible-popups > .each > .bottom span', function () {
+            if ($(this).hasClass('one-day')) {
+                var u = $(this).closest('.each').data('u').toString();
+                var date = new Date();
+                var today = new Date();
+                today.setHours(24);
+                today.setMinutes(0);
+                today.setSeconds(0);
+                date.setMilliseconds(date.getMilliseconds() + (today - date));
+                $.cookie('dimodePopupOneDay' + u, 'hidden', { expires: new Date(date), path: '/' });
+            }
+
+            $(this).closest('.each').remove();
+        });
+
+        $popup.find('.manager .form').ajaxForm({
+            beforeSubmit: function (args) {
+                var getValue = function (name) {
+                    for (var i in args) {
+                        if (args[i].name === name)
+                            return args[i].value;
+                    }
+
+                    return null;
+                };
+
+                var title = getValue('title');
+                var type = getValue('type');
+                var startDate = getValue('startDate');
+                var endDate = getValue('endDate');
+                var width = getValue('width');
+                var height = getValue('height');
+                var marginTop = getValue('marginTop');
+                var marginLeft = getValue('marginLeft');
+                var padding = getValue('padding');
+                var memo = getValue('memo');
+                var linkUrl = getValue('linkUrl');
+
+                if (type === 'text') {
+                    var content = dimodeLib.htmlEncode(ckEditor.getData());
+
+                    for (var i in args) {
+                        if (args[i].name === 'content') {
+                            args.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    args.push({ name: 'content', value: content });
+                }
+
+                if (title && title.length > 20) {
+                    dimodeLib.bandMessage('warning', '제목은 20자를 넘을 수 없습니다.', 5000);
+                    return false;
+                }
+                else if (startDate && isNaN(Number(startDate))) {
+                    dimodeLib.bandMessage('warning', '시작일은 8자리 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (endDate && isNaN(Number(endDate))) {
+                    dimodeLib.bandMessage('warning', '시작일은 8자리 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (width && isNaN(Number(width))) {
+                    dimodeLib.bandMessage('warning', '가로 크기는 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (height && isNaN(Number(height))) {
+                    dimodeLib.bandMessage('warning', '세로 크기는 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (marginTop && isNaN(Number(marginTop))) {
+                    dimodeLib.bandMessage('warning', '상단 여백은 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (marginLeft && isNaN(Number(marginLeft))) {
+                    dimodeLib.bandMessage('warning', '좌측 여백은 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (padding && isNaN(Number(padding))) {
+                    dimodeLib.bandMessage('warning', '내부 여백은 숫자로 입력해주세요.', 5000);
+                    return false;
+                }
+                else if (linkUrl && linkUrl.length > 1000) {
+                    dimodeLib.bandMessage('warning', '링크 주소는 1000자를 넘을 수 없습니다.', 5000);
+                    return false;
+                }
+                else if (memo && memo.length > 100) {
+                    dimodeLib.bandMessage('warning', '메모는 100자를 넘을 수 없습니다.', 5000);
+                    return false;
+                }
+
+                if (type === 'text') {
+                    var cont = getValue('content');
+                    if (!cont) {
+                        dimodeLib.bandMessage('warning', '내용을 입력해주세요.', 5000);
+                        return false;
+                    }
+                    else if (cont.length > 2000) {
+                        dimodeLib.bandMessage('warning', '내용은 2,000자를 넘을 수 없습니다.', 5000);
+                        return false;
+                    }
+                }
+                else {
+                    if (!getValue('content') && !getValue('file')) {
+                        dimodeLib.bandMessage('warning', '파일을 선택해주세요.', 5000);
+                        return false;
+                    }
+                }
+
+                dimodeLib.bandMessage('warning', '처리 중입니다.', 0);
+            },
+            success: function (res) {
+                if (res === 'success') {
+                    dimodeLib.bandMessage('success', '저장하였습니다.', 5000);
+                    change();
+                }
+                else {
+                    dimodeLib.bandMessage('danger', '오류가 있습니다.');
+                }
+            },
+            error: function () {
+                dimodeLib.bandMessage('danger', '오류가 있습니다.#2', 0);
+            }
+        });
+
+        $popup.find('.visible-popups > .each').each(function () {
+            var u = $(this).data('u');
+            var type = $(this).data('type');
+            var href = $(this).data('href');
+
+            if ($.cookie('dimodePopupOneDay' + u) === 'hidden') {
+                $(this).remove();
+            }
+            else if (type === 'text') {
+                var $html = $(this).show().find('.html');
+                $html.html(dimodeLib.htmlDecode($html.text()));
+            }
+            else {
+                $(this).show();
+            }
+
+            if (type === 'image' && href) {
+                $(this).on('click', function () {
+                    location.href = href;
+                });
+            }
+
+            if ($(window).width() > 767)
+            {
+            	if($(this).find('video').length <= 0)
+            	{
+                $(this).draggable();
+              }
+            }
+        });
+		
+		if ($(window).width() < 768) {
+			$('#directPopup iframe').wrap("<div class='video-wrap'></div>");
+		}
+		
+    });
+})(jQuery);

@@ -1,0 +1,73 @@
+﻿/// <reference path="../Scripts/dimode.common.library.js" />
+$(document).ready(function () {
+    if (!dimodeLib.isNullOrEmpty($.cookie('bandMessage'))) {
+        // 밴드 쿠키 메시지를 띄웁니다.
+        var bandMessage = $.cookie('bandMessage');
+        var msg = JSON.parse(bandMessage);
+        dimodeLib.bandMessage(msg.type, msg.text, msg.time);
+        $.cookie('bandMessage', null, { expires: -1, path: '/' });
+    }
+
+    $(document).on('mousedown', '.readonly', function (e) {
+        // 이 함수는 readonly라는 클래스를 가진 요소를 클릭 시 변화가 없게 처리합니다.
+        e.preventDefault();
+        this.blur();
+        window.focus();
+    });
+
+    $(document).on('focus', 'input.date', function () {
+        $(this).datepicker({
+            dateFormat: 'yy-mm-dd',
+            closeText: '닫기',
+            prevText: '이전달',
+            nextText: '다음달',
+            currentText: '오늘',
+            monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+            monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+            dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+            dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+            dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+            weekHeader: 'Wk',
+            firstDay: 0,
+            isRTL: false,
+            duration: 200,
+            showAnim: 'show',
+            showMonthAfterYear: true,
+            yearSuffix: '년',
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            onChangeMonthYear: function (year, month, inst) { },
+            beforeShow: function (input, inst) { },
+            onSelect: function (dateText, inst) { }
+        });
+    });
+
+    $(document).on('click', '#bandMessage #bandMessageWrapper', function () {
+        $(this).find('.message').removeClass('show').hide();
+    });
+
+	if (!window._cordovaNative) {
+    	$(document).on('click', 'a[data-href]', function () {
+	      dimodeLib.openPop($(this).data('href'), $(this).data('target'));
+    	});
+    }
+
+    //앱에서 접속했을 때 자동 로그인 처리
+    if (window.localStorage !== null && window._cordovaNative !== null) {
+        var loginInfo = window.localStorage.getItem("DimodeCMS_Login_Info");
+        if (loginInfo !== null && loginInfo != "") {
+            $.ajax({
+                type: 'POST',
+                url: '/api/autoLogin',
+                data: { 'cookie': loginInfo },
+                dataType: 'html',
+                success: function (msg) {
+                    if (msg == "success") {
+                        window.localStorage.setItem("DimodeCMS_Login_Info", $.cookie("DimodeCMS_Login_Info"));
+                        location.href = "/";
+                    }
+                }
+            });
+        }
+    }
+});

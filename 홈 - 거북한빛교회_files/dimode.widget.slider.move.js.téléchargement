@@ -1,0 +1,153 @@
+﻿(function ($) {
+    $(document).ready(function () {
+        var slide = {
+            index: 0,
+            count: $('.dimode-slider .slide').length,
+            slideTime: $('.dimode-slider').data('slidetime'),
+            changeSpeed: $('.dimode-slider').data('changespeed')
+        };
+
+        var interval;
+		
+        //모바일 드래그
+        var startTouchX = null;
+        var moveTouchX = null;
+		var startTouchY = null;
+        var moveTouchY = null;
+
+        function nextSlide() {
+            if (slide.index < slide.count - 1)
+                slide.index++;
+            else
+                slide.index = 0;
+
+            $('.dimode-slider .slider-wrapper').stop().animate({
+                marginLeft: -(slide.index * 100) + '%'
+            }, slide.changeSpeed);
+
+            setActive();
+        }
+
+        function prevSlide() {
+            if (slide.index > 0)
+                slide.index--;
+            else
+                slide.index = slide.count - 1;
+
+            $('.dimode-slider .slider-wrapper').stop().animate({
+                marginLeft: -(slide.index * 100) + '%'
+            }, slide.changeSpeed);
+
+            setActive();
+        }
+
+        function moveSlide(idx) {
+            slide.index = idx;
+
+            $('.dimode-slider .slider-wrapper').stop().animate({
+                marginLeft: -(slide.index * 100) + '%'
+            }, slide.changeSpeed);
+
+            setActive();
+        }
+
+        function setActive() {
+            var $dot = $('.dimode-slider .slider-dots .each-dot');
+            $dot.removeClass('active');
+            $dot.eq(slide.index).addClass('active');
+			$('.dimode-slider .slider-wrapper .slide').removeClass('active').eq(slide.index).addClass('active');
+			
+			startTouchX = null;
+			moveTouchX = null;
+        }
+
+        function setAutoSlide() {
+            interval = setInterval(function () {
+                nextSlide();
+            }, slide.slideTime);
+        }
+
+        $(document).on('click', '.dimode-slider .move-btn', function () {
+			
+            if ($(this).hasClass('next-btn')){
+                nextSlide();
+			}
+            else{
+                prevSlide();
+			}
+        });
+
+        $('.dimode-slider').on({
+
+            'mouseover': function () {
+                clearInterval(interval);
+            },
+            'mouseleave': function () {
+                setAutoSlide();
+            },
+            'dragstart': function (e) {
+                posX1 = e.clientX;
+				posY1 = e.clientY;
+            },
+            'dragend': function (e) {
+                posX2 = e.clientX;
+				posY2 = e.clientY;
+                //console.log($(e.target).parent('.slider-wrapper .slide'));
+                if (posX1 > posX2) {
+                    nextSlide();
+					//console.log('dragend');
+                }
+                else {
+                    prevSlide();
+                }
+            }
+        });
+
+  
+        $('.dimode-slider').not('.move-btn').bind('touchstart', function (event) {
+            // 클릭 시 링크 이동이 되지 않아 주석 처리. JC. 2020-10-12
+            //event.preventDefault();  
+            startTouchX = event.originalEvent.targetTouches[0].pageX;
+			startTouchY = event.originalEvent.targetTouches[0].pageY;
+        });
+
+        $('.dimode-slider').not('.move-btn').bind('touchmove', function (event) {
+            event.preventDefault();
+            moveTouchX = event.originalEvent.targetTouches[0].pageX;
+			moveTouchY = event.originalEvent.targetTouches[0].pageY;
+			
+			//console.log('moveTouchX'+moveTouchX);
+			console.log('moveTouchY'+moveTouchY);
+        });
+
+        $('.dimode-slider').not('.move-btn').bind('touchend', function (e) {
+			//console.log(e);
+			if( startTouchX !== null && moveTouchX !== null && (Math.abs(startTouchX - moveTouchX) > 30 )){
+				if (startTouchX > moveTouchX){
+					nextSlide();
+				}
+				else{
+					prevSlide();
+				}
+			}
+			 
+			// if(Math.abs(startTouchY - moveTouchY) > 10 ){
+				// if(startTouchY > moveTouchY){
+					// window.scrollTo({top:moveTouchY, left:moveTouchX, behavior:'smooth'});
+				// }
+				// if(startTouchY < moveTouchY){
+					// var upScroll = startTouchY - moveTouchY ;
+					// window.scrollTo({top:upScroll, left:moveTouchX, behavior:'smooth'});
+				// }
+			// }
+        });
+
+        $(document).on('click', '.dimode-slider .slider-dots .each-dot', function () {
+            var idx = $(this).data('idx');
+            moveSlide(idx);
+        });
+
+        setAutoSlide();
+		setActive();
+    });
+})(jQuery);

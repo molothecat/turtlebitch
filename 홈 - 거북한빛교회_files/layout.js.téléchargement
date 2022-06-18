@@ -1,0 +1,193 @@
+﻿(function ($) {
+    $(function () {
+        $(window).load(function () {
+            $("#my-menu").mmenu({
+                // "slidingSubmenus": false,
+                "extensions": [
+                    "effect-menu-slide", "pageshadow", "pagedim-black"
+                ],
+                "offCanvas": {
+                    "position": "right",
+                    "zposition": "front"
+                },
+                "navbar": { "title": "거룩한빛광성교회" }
+            });
+            /*
+            $('.mm-navbar > .mm-title').after('<a class="mm-logo" href="#"><img src="/UserData/kwangsung/Layouts/kwangsung_Layout/Images/1.top_logo.png" /></a>');
+            */
+            $(".sub_depth2 li.active i.fa-plus").hide();
+            $(".sub_depth2 li.active i.fa-minus").show();
+            $(".sub_depth2 li i.fa-plus").click(function () {
+                $(this).next().next().next("ul.sub_depth3").addClass("active");
+                $(this).hide();
+                $(this).next().show();
+            });
+            $(".sub_depth2 li i.fa-minus").click(function () {
+                $(this).next().next("ul.sub_depth3").removeClass("active");
+                $(this).hide();
+                $(this).prev().show();
+            });
+        });
+
+        var percent = '<div id="percent"></div>';
+        $("body").append(percent);
+
+        //contents에서 스크롤을 감지하면 작동하는 함수
+        $(window).on("scroll", function () {
+
+            var currentPercentage = $(window).scrollTop() / ($("#dimodePage").outerHeight() - $(window).height());
+            var result = $("#percent").width($(window).outerWidth() * currentPercentage);
+            console.log($(".dimode-slider").height());
+            console.log($(window).scrollTop());
+            if ($(window).scrollTop() > $(".dimode-slider").height()) {
+                $('#header').addClass('gnb-white');
+            }
+            else {
+                $('#header').removeClass('gnb-white');
+            }
+        });
+
+
+
+        (function ($) {
+            $(document).ready(function () {
+
+                var index = -1;
+                $("#gnb > .dept1 > li > a").mouseenter(function () {
+                    
+                    if ($(".gnb2").height() === 0) {
+                        if (index !== $(this).parent().index()) {
+                            index = $(this).parent().index();
+                            //$(".gnb2").height(350);
+                            $(".gnb2").show();
+                            $("#gnb > .dept1 > li > a").removeClass("active");
+                            $(this).addClass("active");
+                            var d2 = $(this).parent().children('ul').html();
+                            $(".gnb2 div.subul").html(d2);
+                            console.log($(".gnb2 .container").height());
+                            $(".gnb2").animate({
+                                height: $(".gnb2 .container").height()
+                            }, 300);
+                            /*
+                            if (index == 7) {
+                                $(".gnb2 ul.subul li").width('135px');
+                            }
+                            */
+                            $(".subtext_title").html($(this).html());
+                            $(".subtext-wrap").show();
+                        }
+                    }
+                    if ($(".gnb2").height() === $(".gnb2 .container").height()-1) {
+
+                        if (index !== $(this).parent().index()) {
+                            index = $(this).parent().index();
+                            $("#gnb > .dept1 > li > a").removeClass("active");
+                            $(".gnb2").animate({
+                                height: '0px'
+                            }, 0);
+                            $(this).addClass("active");
+                            var d3 = $(this).parent().children('ul').html();
+                            if (!d3) d3 = "";
+                            $(".subtext_title").html($(this).html());
+                            $(".gnb2 div.subul").html(d3);
+                            console.log($(".gnb2 .container").height());
+                            $(".gnb2").animate({
+                                height: $(".gnb2 .container").height()
+                            }, 0);
+                            /*
+                            if (index == 7) {
+                                $(".gnb2 ul.subul li").width('135px');
+                            }
+                            */
+
+                        }
+                    }
+                });
+
+                $(".gnb2").mouseleave(function (e) {
+                    if ($(e.toElement).attr('id') !== "gnb") {
+                        $(".gnb2 ul.subul").html("");
+                        $("#gnb > .dept1 > li > a").removeClass("active");
+                        index = -1;
+                        $(".subtext-wrap").hide();
+                        $(".gnb2").animate({
+                            height: '0px'
+                        }, 300);
+                    }
+                });
+                $("#gnb").mouseleave(function (e) {
+                    if ($(e.toElement).attr('class') !== "container") {
+                        $(".gnb2 div.subul").html("");
+                        $("#gnb > .dept1 > li > a").removeClass("active");
+                        index = -1;
+                        $(".subtext-wrap").hide();
+                        $(".gnb2").animate({
+                            height: '0px'
+                        }, 300);
+                    }
+                });
+            });
+        })(jQuery);
+
+        $("#all-menu-btn").on("change", function (e) {
+            let $this = $('#gnb-all');
+            if ($this.hasClass('open')) {
+                $this.removeClass('open');
+                $('.gnb2').removeClass('border_none');
+            } else {
+                $('#gnb-all .dept1').fadeIn(100);
+                $this.addClass('open');
+                $('.gnb2').addClass('border_none');
+            }
+        });
+
+        $("#gnb-close").on("click", function (e) {
+            let $this = $('#gnb-all');
+            if ($this.hasClass('open')) {
+                $('#gnb-all .dept1 > li > a').removeClass("active");
+                $('#gnb-all ul.dept2 > li > a').removeClass("active");
+                $this.removeClass('open');
+                $('.gnb2').removeClass('border_none');
+                $('#gnb-all .dept2').fadeOut(100);
+                $('#gnb-all .dept3').fadeOut(100);
+            } else {
+                $this.addClass('open');
+                $('.gnb2').addClass('border_none');
+            }
+        });
+
+        $(".all-wrapper > div > .dept1 > li > a").on({
+            mouseenter: function () {
+                var d2 = $(this).next('.dept2');
+
+                $(".all-wrapper > div > .dept1 > li > a").removeClass("active");
+                $(this).addClass("active");
+
+                $(this).closest('li').siblings().each(function () {
+                    $(this).find('.dept2').hide();
+                });
+
+                d2.fadeIn(100);
+            },
+            mouseleave: function () {
+            }
+        });
+        
+        $(".all-wrapper > div > .dept1 > li > .dept2 > li > a").on({
+            mouseenter: function () {
+                var d3 = $(this).next('.dept3');
+
+                $(".all-wrapper > div > .dept1 > li > .dept2 > li > a").removeClass("active");
+                $(this).addClass("active");
+
+                $(this).closest('li').siblings().each(function () {
+                    $(this).find('.dept3').hide();
+                });
+
+                d3.fadeIn(100);
+            },
+            mouseleave: function () {
+            }
+        });
+    });
+})(jQuery);
